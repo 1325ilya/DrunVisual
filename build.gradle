@@ -1,0 +1,110 @@
+plugins {
+    id "fabric-loom" version "1.16.2"
+    id "maven-publish"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+if (project.hasProperty("altBuildDir")) {
+    layout.buildDirectory.set(file(project.property("altBuildDir").toString()))
+} else {
+    layout.buildDirectory.set(layout.projectDirectory.dir("workspace/build"))
+}
+
+base {
+    archivesName = project.archives_base_name
+}
+
+loom {
+    runs {
+        configureEach {
+            setRunDir("workspace/run")
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    compileOnly "org.projectlombok:lombok:1.18.38"
+    compileOnly "org.jetbrains:annotations:26.0.2-1"
+
+    implementation "org.json:json:20250517"
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
+    implementation "com.squareup.okhttp3:okhttp-sse:4.12.0"
+    implementation "com.squareup.okio:okio-jvm:3.6.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
+    implementation "net.openhft:zero-allocation-hashing:0.16"
+
+    include "org.json:json:20250517"
+    include "com.squareup.okhttp3:okhttp:4.12.0"
+    include "com.squareup.okhttp3:okhttp-sse:4.12.0"
+    include "com.squareup.okio:okio-jvm:3.6.0"
+    include "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
+    include "net.openhft:zero-allocation-hashing:0.16"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+}
+
+tasks.named("sourcesJar", Jar).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 21
+    options.incremental = false
+    options.failOnError = false
+    options.compilerArgs.add("-Xlint:none")
+    options.compilerArgs.addAll(["-Xmaxerrs", "100000", "-Xmaxwarns", "100000"])
+    doLast {
+        def report = project.layout.buildDirectory.file("compile-errors.txt").get().asFile
+        report.parentFile.mkdirs()
+        def errs = []
+        def lastErr = null
+        try {
+            // collector through stderr is not directly available; instead re-parse the gradle build log
+            def buildLog = new File(project.projectDir, "build.log")
+            if (buildLog.exists()) {
+                buildLog.eachLine { ln ->
+                    if (ln ==~ /^.+\.java:\d+:\s*error:.*/) {
+                        errs << ln
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        report.text = errs.join('\n')
+        println "[compile-errors] collected ${errs.size()} javac errors -> ${report}"
+        if (!errs.isEmpty()) {
+            throw new GradleException("compileJava failed with ${errs.size()} javac error(s); see ${report}")
+        }
+    }
+}
+
+def expandedModVersion = project.version
+
+tasks.processResources {
+    inputs.property "version", expandedModVersion
+    filesMatching("fabric.mod.json") {
+        expand "version": expandedModVersion
+    }
+}
+
+tasks.register("printJavaSourceStats") {
+    doLast {
+        def files = sourceSets.main.java.files
+        println "java source count=${files.size()}"
+        ["a.java", "A.java", "cm.java", "cM.java", "bz.java", "bZ.java", "cj.java", "cJ.java"].each { name ->
+            println "${name}=${files.find { it.name == name }}"
+        }
+    }
+}

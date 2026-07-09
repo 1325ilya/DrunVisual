@@ -1,0 +1,7 @@
+.gradle/
+workspace/build/
+workspace/build_alt/
+workspace/run/
+*.log
+*.class
+.env

@@ -1,0 +1,42 @@
+package ru.drunvisual.mixin;
+
+import java.lang.reflect.Method;
+import net.minecraft.client.util.math.MatrixStack;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import drunvisual.markers.MapMarker;
+import drunvisual.markers.MapMarkerRenderer;
+import drunvisual.render.Renderer2D;
+
+@Mixin(value = {MapMarkerRenderer.class}, remap = false)
+public abstract class MapMarkerDistanceMixin {
+    @Inject(method = {"a(D)Ljava/lang/String;"}, at = {@At("HEAD")}, cancellable = true)
+    private void fixDistanceFormat(double d, CallbackInfoReturnable<String> callbackInfoReturnable) {
+        if (d < 1.0d) {
+            callbackInfoReturnable.setReturnValue("<1 м");
+        } else if (d < 1000.0d) {
+            callbackInfoReturnable.setReturnValue(((int) d) + " м");
+        } else {
+            callbackInfoReturnable.setReturnValue(String.format("%.1f км", Double.valueOf(d / 1000.0d)));
+        }
+    }
+
+    @Redirect(method = {"a(Lnet/minecraft/class_4587;Lpulse/render/Renderer2D;Lpulse/markers/MapMarker;)V"}, at = @At(value = "INVOKE", target = "Lpulse/markers/MapMarkerRenderer;a(Lnet/minecraft/class_4587;Lpulse/render/Renderer2D;FF)V"))
+    private void skipBulbIconForLocalMarkers(MapMarkerRenderer mapMarkerRenderer, MatrixStack MatrixStackVar, Renderer2D renderer2D, float f, float f2, MatrixStack MatrixStackVar2, Renderer2D renderer2D2, MapMarker mapMarker) {
+        if (mapMarker.j()) {
+            renderBulbIcon(mapMarkerRenderer, MatrixStackVar, renderer2D, f, f2);
+        }
+    }
+
+    private static void renderBulbIcon(MapMarkerRenderer mapMarkerRenderer, MatrixStack MatrixStackVar, Renderer2D renderer2D, float f, float f2) {
+        try {
+            Method declaredMethod = MapMarkerRenderer.class.getDeclaredMethod("a", MatrixStack.class, Renderer2D.class, Float.TYPE, Float.TYPE);
+            declaredMethod.setAccessible(true);
+            declaredMethod.invoke(mapMarkerRenderer, MatrixStackVar, renderer2D, Float.valueOf(f), Float.valueOf(f2));
+        } catch (Exception e) {
+        }
+    }
+}

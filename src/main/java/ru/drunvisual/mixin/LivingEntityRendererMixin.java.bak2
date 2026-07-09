@@ -1,0 +1,67 @@
+package ru.drunvisual.mixin;
+
+import net.minecraft.client.render.entity.state.LivingEntityRenderState;
+import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.text.Text;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.LivingEntityRenderer;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import drunvisual.events.EventBusService;
+import drunvisual.events.LivingEntityRenderEvent;
+import drunvisual.module.ModuleRegistry;
+
+@Mixin({LivingEntityRenderer.class})
+public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> extends EntityRenderer<T, S> {
+
+    @Shadow
+    protected M model;
+    private static LivingEntity capturedEntity;
+
+    protected LivingEntityRendererMixin() {
+        super((EntityRendererFactory.Context) null);
+    }
+
+    @Inject(method = {"updateRenderState(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;F)V"}, at = {@At("HEAD")})
+    private void captureEntity(T t, S s, float f, CallbackInfo callbackInfo) {
+        capturedEntity = t;
+    }
+
+    @Inject(method = {"render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V"}, at = {@At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;shouldRenderFeatures(Lnet/minecraft/LivingEntityRenderState;)Z")})
+    private void onRenderEntity(S s, MatrixStack MatrixStackVar, VertexConsumerProvider VertexConsumerProviderVar, int i, CallbackInfo callbackInfo) {
+        EventBusService.EVENT_BUS.post(new LivingEntityRenderEvent(capturedEntity, s, MatrixStackVar, this.model, VertexConsumerProviderVar));
+    }
+
+    @Inject(method = {"render"}, at = {@At("TAIL")})
+    private void renderSelfNametag(S s, MatrixStack MatrixStackVar, VertexConsumerProvider VertexConsumerProviderVar, int i, CallbackInfo callbackInfo) {
+        if (s instanceof PlayerEntityRenderState) {
+            PlayerEntityRenderState PlayerEntityRenderStateVar = (PlayerEntityRenderState) s;
+            MinecraftClient MinecraftClientVarGetInstance = MinecraftClient.getInstance();
+            if (MinecraftClientVarGetInstance.player == null || PlayerEntityRenderStateVar.id != MinecraftClientVarGetInstance.player.getId() || !ModuleRegistry.SELF_NAMETAG.k() || MinecraftClientVarGetInstance.options.getPerspective().isFirstPerson() || PlayerEntityRenderStateVar.squaredDistanceToCamera >= 4096.0d) {
+                return;
+            }
+            MatrixStackVar.push();
+            if (PlayerEntityRenderStateVar.playerName != null) {
+                super.renderLabelIfPresent(s, PlayerEntityRenderStateVar.playerName, MatrixStackVar, VertexConsumerProviderVar, i);
+                MatrixStackVar.translate(0.0d, 0.25874999165534973d, 0.0d);
+            }
+            super.renderLabelIfPresent(s, getServerDisplayName(MinecraftClientVarGetInstance, PlayerEntityRenderStateVar.name), MatrixStackVar, VertexConsumerProviderVar, i);
+            MatrixStackVar.pop();
+        }
+    }
+
+    private static Text getServerDisplayName(MinecraftClient MinecraftClientVar, String str) {
+        PlayerListEntry PlayerListEntryVarGetPlayerListEntry;
+        return (MinecraftClientVar.getNetworkHandler() == null || MinecraftClientVar.player == null || (PlayerListEntryVarGetPlayerListEntry = MinecraftClientVar.getNetworkHandler().getPlayerListEntry(MinecraftClientVar.player.getUuid())) == null || PlayerListEntryVarGetPlayerListEntry.getDisplayName() == null) ? Text.literal(str) : PlayerListEntryVarGetPlayerListEntry.getDisplayName();
+    }
+}

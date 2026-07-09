@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "drunvisual",
+  "version": "1.0-SNAPSHOT",
+  "name": "DrunVisual",
+  "description": "DrunVisual client for Minecraft (no native protection stubbed)",
+  "authors": [
+    "Vonexl"
+  ],
+  "license": "All-Rights-Reserved",
+  "icon": "assets/drunvisual/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [],
+    "main": [
+      "ru.drunvisual.DrunVisual"
+    ]
+  },
+  "mixins": [
+    "drunvisual.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.17.0",
+    "fabric": "*",
+    "minecraft": "1.21.4",
+    "java": ">=21"
+  }
+}
