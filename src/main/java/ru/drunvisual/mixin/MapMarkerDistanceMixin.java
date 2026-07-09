@@ -24,7 +24,7 @@ public abstract class MapMarkerDistanceMixin {
         }
     }
 
-    @Redirect(method = {"a(Lnet/minecraft/class_4587;Lpulse/render/Renderer2D;Lpulse/markers/MapMarker;)V"}, at = @At(value = "INVOKE", target = "Lpulse/markers/MapMarkerRenderer;a(Lnet/minecraft/class_4587;Lpulse/render/Renderer2D;FF)V"))
+    @Redirect(method = {"a(Lnet/minecraft/class_4587;Ldrunvisual/render/Renderer2D;Ldrunvisual/markers/MapMarker;)V"}, at = @At(value = "INVOKE", target = "Ldrunvisual/markers/MapMarkerRenderer;a(Lnet/minecraft/class_4587;Ldrunvisual/render/Renderer2D;FF)V"))
     private void skipBulbIconForLocalMarkers(MapMarkerRenderer mapMarkerRenderer, MatrixStack MatrixStackVar, Renderer2D renderer2D, float f, float f2, MatrixStack MatrixStackVar2, Renderer2D renderer2D2, MapMarker mapMarker) {
         if (mapMarker.j()) {
             renderBulbIcon(mapMarkerRenderer, MatrixStackVar, renderer2D, f, f2);
