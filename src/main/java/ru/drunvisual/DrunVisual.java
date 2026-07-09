@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import drunvisual.gui.core.ClickGuiKeyBinding;
 import drunvisual.hud.core.HudServiceRegistry;
+import drunvisual.hud.core.RemoteWatermarkText;
 import drunvisual.render.icons.IconTextureRegistry;
 import drunvisual.gui.core.DrunVisualClickGuiScreen;
 import drunvisual.render.Renderer2D;
@@ -68,6 +69,7 @@ public class DrunVisual implements Runnable, ThreadFactory, ModInitializer {
 
     public void init() {
         IconTextureRegistry.load();
+        RemoteWatermarkText.initAsync();
         ShaderLibrary.loadDefaultShaders();
         this.render = new Renderer2DImpl();
         HudServiceRegistry.a();

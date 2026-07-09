@@ -5,12 +5,12 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.PlayerListEntry;
 import drunvisual.hud.core.HudIcons;
+import drunvisual.hud.core.RemoteWatermarkText;
 import drunvisual.render.Renderer2D;
 import drunvisual.render.font.FontManager;
 import drunvisual.render.font.FontRenderer;
 
 public class WatermarkOverlay extends HudNotification {
-    private static final String WATERMARK = "DrunVisuals";
     private static final float ICON_SIZE = 14.0f;
     private static final float GAP = 7.0f;
     private static final int FONT_SIZE = 14;
@@ -60,8 +60,9 @@ public class WatermarkOverlay extends HudNotification {
 
     private void drawSegments(MatrixStack MatrixStackVar, float f, float f2, float f3) {
         FontRenderer fontRenderer = FontManager.MEDIUM[FONT_SIZE];
-        float fB = f2 - (fontRenderer.b(WATERMARK) / 4.0f);
-        drawPart(fontRenderer, getFps() + " FPS", drawPart(fontRenderer, " / ", drawPart(fontRenderer, getPingMs() + " ms", drawPart(fontRenderer, " / ", drawPart(fontRenderer, WATERMARK, f, fB, TEXT, f3, MatrixStackVar), fB, MUTED, f3, MatrixStackVar), fB, TEXT, f3, MatrixStackVar), fB, MUTED, f3, MatrixStackVar), fB, TEXT, f3, MatrixStackVar);
+        String text = RemoteWatermarkText.getText();
+        float fB = f2 - (fontRenderer.b(text) / 4.0f);
+        drawPart(fontRenderer, getFps() + " FPS", drawPart(fontRenderer, " / ", drawPart(fontRenderer, getPingMs() + " ms", drawPart(fontRenderer, " / ", drawPart(fontRenderer, text, f, fB, TEXT, f3, MatrixStackVar), fB, MUTED, f3, MatrixStackVar), fB, TEXT, f3, MatrixStackVar), fB, MUTED, f3, MatrixStackVar), fB, TEXT, f3, MatrixStackVar);
     }
 
     private float drawPart(FontRenderer fontRenderer, String str, float f, float f2, Color color, float f3, MatrixStack MatrixStackVar) {
@@ -71,7 +72,8 @@ public class WatermarkOverlay extends HudNotification {
 
     private float measureTextWidth() {
         FontRenderer fontRenderer = FontManager.MEDIUM[FONT_SIZE];
-        return 21.0f + fontRenderer.a(WATERMARK) + fontRenderer.a(" / ") + fontRenderer.a(getPingMs() + " ms") + fontRenderer.a(" / ") + fontRenderer.a(getFps() + " FPS");
+        String text = RemoteWatermarkText.getText();
+        return 21.0f + fontRenderer.a(text) + fontRenderer.a(" / ") + fontRenderer.a(getPingMs() + " ms") + fontRenderer.a(" / ") + fontRenderer.a(getFps() + " FPS");
     }
 
     private int getFps() {

@@ -5,13 +5,13 @@ import net.minecraft.client.util.math.MatrixStack;
 import drunvisual.module.ModuleRegistry;
 import drunvisual.hud.core.HudElement;
 import drunvisual.hud.core.HudIcons;
+import drunvisual.hud.core.RemoteWatermarkText;
 import drunvisual.render.Renderer2D;
 import drunvisual.render.font.FontManager;
 import drunvisual.render.font.FontRenderer;
 import drunvisual.render.icons.IconTextureRegistry;
 
 public class WatermarkHudElement extends HudElement {
-    private static final String TITLE = "DrunVisuals";
     private static final float PAD_X = 8.5f;
     private static final float PAD_Y = 6.0f;
     private static final float ICON_BASE = 12.0f;
@@ -29,10 +29,11 @@ public class WatermarkHudElement extends HudElement {
     protected void a() {
         bindSettings();
         float fG = g();
+        String text = RemoteWatermarkText.getText();
         FontRenderer fontRenderer = FontManager.b[Math.max(6, Math.min(16, Math.round(14.0f * fG)))];
         float f = ICON_BASE * fG;
-        float fA = (PAD_X * fG) + f + (ICON_GAP * fG) + fontRenderer.a(TITLE) + (PAD_X * fG);
-        float fMax = (ICON_BASE * fG) + Math.max(f, fontRenderer.b(TITLE));
+        float fA = (PAD_X * fG) + f + (ICON_GAP * fG) + fontRenderer.a(text) + (PAD_X * fG);
+        float fMax = (ICON_BASE * fG) + Math.max(f, fontRenderer.b(text));
         this.d = fA;
         this.e = fMax;
     }
@@ -68,9 +69,10 @@ public class WatermarkHudElement extends HudElement {
         renderer2D.a(iconCx - (gs3 / 2.0f), iconCy - (gs3 / 2.0f), gs3, gs3, gs3 / 2.0f, glowOuter, MatrixStackVar);
         renderer2D.a(iconCx - (gs2 / 2.0f), iconCy - (gs2 / 2.0f), gs2, gs2, gs2 / 2.0f, glowMid, MatrixStackVar);
         renderer2D.a(iconCx - (gs1 / 2.0f), iconCy - (gs1 / 2.0f), gs1, gs1, gs1 / 2.0f, glowInner, MatrixStackVar);
+        String text = RemoteWatermarkText.getText();
         HudIcons.drawFlippedVertical(renderer2D, MatrixStackVar, IconTextureRegistry.get(IconTextureRegistry.LOGO), iconX, iconY, f9, withAlpha(Color.WHITE, 1.0f));
         FontRenderer pulseFont = FontManager.b[Math.max(6, Math.min(16, Math.round(14.0f * fG)))];
-        pulseFont.a(TITLE, iconX + f9 + f10, (f4 + (f6 / 2.0f)) - (pulseFont.b(TITLE) / 4.0f), withAlpha(Color.WHITE, 1.0f), MatrixStackVar);
+        pulseFont.a(text, iconX + f9 + f10, (f4 + (f6 / 2.0f)) - (pulseFont.b(text) / 4.0f), withAlpha(Color.WHITE, 1.0f), MatrixStackVar);
     }
 
     private void bindSettings() {
